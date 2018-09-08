@@ -7,7 +7,7 @@ const GnosisSafeContract = require('../build/contracts/GnosisSafe.json')
 class Executor {
   constructor({providerUrl, appName}) {
     const provider = new Web3.providers.WebsocketProvider(providerUrl)
-    this.web3 = new Web3(provider)
+    this.web3 = new Web3('http://localhost:8545')
     this.shh = new Shh(provider)
     this.appName = appName
   }
@@ -32,7 +32,41 @@ class Executor {
       }
       console.log(msg);
       if (msg !== null) {
-        this.submit(msg)
+        try {
+          const msgJson = JSON.parse(Web3Utils.hexToAscii(msg.payload))
+          console.log(`Incoming request!`, msgJson);
+          const {
+            to,
+            value,
+            data,
+            operation,
+            safeTxGas,
+            gasPrice,
+            gasToken,
+            refundReceiver,
+            nonce,
+            safeAddress,
+            signedMessage
+          } = msgJson;
+          const dataGas = 0;
+
+          // call the contract
+          await this.submit(
+            safeAddress,
+            to,
+            value,
+            data,
+            operation,
+            safeTxGas,
+            dataGas,
+            gasPrice,
+            gasToken,
+            refundReceiver,
+            signedMessage
+          )
+        } catch (err) {
+          console.log(`Error while executing the message!`, err);
+        }
       }
     });
   }
@@ -50,11 +84,10 @@ class Executor {
     refundReceiver,
     signatures
   ) {
-    const account = await web3.eth.getAccounts()[0]
+    const account = await this.web3.eth.getAccounts()[0]
 
-    const safe = new web3.eth.Contract(GnosisSafeContract.abi, addr)
+    const safe = new this.web3.eth.Contract(GnosisSafeContract.abi, addr)
     let gas = await safe.methods.execTransaction(
-      addr,
       to,
       value,
       data,
@@ -68,7 +101,6 @@ class Executor {
     ).estimateGas({ from: account })
 
     const tx = await safe.methods.execTransaction(
-      addr,
       to,
       value,
       data,
