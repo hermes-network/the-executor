@@ -1,0 +1,15 @@
+{
+  "name": "the-executor",
+  "version": "0.0.1",
+  "description": "Hermes - The Executor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Hermes team",
+  "license": "ISC",
+  "dependencies": {
+    "web3-shh": "^1.0.0-beta.36",
+    "web3-utils": "^1.0.0-beta.36"
+  }
+}
