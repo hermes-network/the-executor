@@ -13,7 +13,9 @@
     "ethereumjs-abi": "^0.6.5",
     "ethereumjs-util": "^5.2.0",
     "gnosis-safe": "git+https://github.com/hermes-network/safe-contracts.git#development",
-    "web3": "^1.0.0-beta.36",
+    "truffle-contract": "^3.0.6",
+    "web3": "^0.20.6",
+    "web3-hdwallet-provider": "^0.1.1",
     "web3-shh": "^1.0.0-beta.36",
     "web3-utils": "^1.0.0-beta.36"
   },

@@ -1,14 +1,24 @@
 const Web3Utils = require('web3-utils')
 const Web3 = require('web3')
+const Web3HDWalletProvider = require("web3-hdwallet-provider")
 const Shh = require('web3-shh')
+const util = require('util');
+const contract = require('truffle-contract');
 
 const GnosisSafeContract = require('../build/contracts/GnosisSafe.json')
+const walletMnemonic = 'ill song party come kid carry calm captain state purse weather ozone';
 
 class Executor {
-  constructor({providerUrl, appName}) {
-    const provider = new Web3.providers.WebsocketProvider(providerUrl)
-    this.web3 = new Web3('http://localhost:8545')
-    this.shh = new Shh(provider)
+  constructor({wsProviderUrl, httpProviderUrl, appName}) {
+    // setup the providers
+    console.log(`wsProviderUrl: ${wsProviderUrl}, httpProviderUrl: ${httpProviderUrl}`);
+    const httpProvider = new Web3.providers.HttpProvider(httpProviderUrl);
+    this.walletProvider = new Web3HDWalletProvider(httpProvider, walletMnemonic);
+    this.web3 = new Web3(this.walletProvider)
+    // this.web3 = new Web3('http://localhost:8545')
+
+    // const wsProvider = new Web3.providers.WebsocketProvider(wsProviderUrl)
+    this.shh = new Shh(wsProviderUrl)
     this.appName = appName
   }
 
@@ -16,7 +26,8 @@ class Executor {
     const version = await this.shh.getVersion();
     console.log(`Shh version: ${version}`);
 
-    const fromAccount = (await this.web3.eth.getAccounts())[0]
+    const fromAccount = (await getAccounts(this.web3))[0]
+    console.log(`Account: ${fromAccount}`);
 
     // check the balance
     runBalanceCheck(this.web3, fromAccount);
@@ -89,8 +100,10 @@ class Executor {
     refundReceiver,
     signatures
   ) {
-    const safe = new this.web3.eth.Contract(GnosisSafeContract.abi, addr)
-    let gas = await safe.methods.execTransaction(
+    const c = contract({abi: GnosisSafeContract.abi});
+    c.setProvider(this.walletProvider);
+    const safe = c.at(addr)
+    let gas = await safe.execTransaction.estimateGas(
       to,
       value,
       data,
@@ -100,12 +113,12 @@ class Executor {
       gasPrice,
       gasToken,
       refundReceiver,
-      signatures
-    ).estimateGas({ from: fromAccount });
+      signatures,
+      { from: fromAccount });
     gas *= 1.2;
     gas = parseInt(gas);
 
-    const tx = await safe.methods.execTransaction(
+    const tx = await safe.execTransaction(
       to,
       value,
       data,
@@ -115,10 +128,33 @@ class Executor {
       gasPrice,
       gasToken,
       refundReceiver,
-      signatures
-    ).send({ from: fromAccount, gas })
+      signatures,
+      { from: fromAccount, gas })
     console.log("tx!!!!!", tx);
   }
+}
+
+function getAccounts(web3) {
+  return new Promise((resolve, reject) => {
+    web3.eth.getAccounts((err, balance) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(balance);
+    });
+  });
+}
+
+function getBalance(web3, fromAccount) {
+  return new Promise((resolve, reject) => {
+    web3.eth.getBalance(fromAccount, (err, balance) => {
+      if (err) {
+        return reject(err);
+      }
+      console.log(`Balance: ${balance.toString()}`);
+      return resolve(balance);
+    });
+  });
 }
 
 function runBalanceCheck(web3, fromAccount) {
@@ -132,8 +168,8 @@ function runBalanceCheck(web3, fromAccount) {
 }
 
 async function checkBalance(web3, fromAccount) {
-  const balance = await web3.eth.getBalance(fromAccount)
-  console.log(`Executor account: ${fromAccount} balance: ${balance}`)
+  const balance = await getBalance(web3, fromAccount)
+  console.log(`Executor account: ${fromAccount} balance: ${Web3Utils.fromWei(balance, 'ether')}`)
 }
 
 module.exports = Executor;

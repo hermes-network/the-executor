@@ -1,11 +1,13 @@
 const Executor = require('./Executor')
 
-const providerUrl = 'ws://eth.oja.me:8547'
+const wsProviderUrl = 'ws://eth.oja.me:8547'
+const httpProviderUrl = 'http://eth.oja.me:3304'
 const appName = "hermes-network";
 
 async function main() {
   const executor = new Executor({
-    providerUrl: providerUrl,
+    wsProviderUrl: wsProviderUrl,
+    httpProviderUrl: httpProviderUrl,
     appName: appName
   });
 
