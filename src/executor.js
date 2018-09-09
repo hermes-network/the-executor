@@ -83,11 +83,11 @@ class Executor {
 
     // Check if nonce is valid, ie
     // nobody else has beaten us to it.
-    let safeNonce = await safe.nonce()
-    if (nonce !== safeNonce.toString()) {
+    /* let safeNonce = await safe.nonce()
+    if (nonce !== safeNonce.toString(10)) {
       console.log('TX is stale, skipping')
       return
-    }
+    } */
 
     let prevBalance = await getBalance(this.web3, this.account)
 
