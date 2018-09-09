@@ -16,10 +16,13 @@ class Executor {
     const version = await this.shh.getVersion();
     console.log(`Shh version: ${version}`);
 
-    const symKeyID = await this.shh.generateSymKeyFromPassword("hermes");
-    console.log(symKeyID);
+    const fromAccount = (await this.web3.eth.getAccounts())[0]
+
+    // check the balance
+    runBalanceCheck(this.web3, fromAccount);
 
     // listen
+    const symKeyID = await this.shh.generateSymKeyFromPassword("hermes");
     const appName4Bytes = Web3Utils.asciiToHex(this.appName).slice(0, 10);
     console.log(`Starting to listen messages!`);
     this.shh.subscribe('messages', {
@@ -52,6 +55,7 @@ class Executor {
 
           // call the contract
           await this.submit(
+            fromAccount,
             safeAddress,
             to,
             value,
@@ -72,6 +76,7 @@ class Executor {
   }
 
   async submit(
+    fromAccount,
     addr,
     to,
     value,
@@ -84,8 +89,6 @@ class Executor {
     refundReceiver,
     signatures
   ) {
-    const account = (await this.web3.eth.getAccounts())[0]
-
     const safe = new this.web3.eth.Contract(GnosisSafeContract.abi, addr)
     let gas = await safe.methods.execTransaction(
       to,
@@ -98,7 +101,7 @@ class Executor {
       gasToken,
       refundReceiver,
       signatures
-    ).estimateGas({ from: account });
+    ).estimateGas({ from: fromAccount });
     gas *= 1.2;
     gas = parseInt(gas);
 
@@ -113,9 +116,24 @@ class Executor {
       gasToken,
       refundReceiver,
       signatures
-    ).send({ from: account, gas })
+    ).send({ from: fromAccount, gas })
     console.log("tx!!!!!", tx);
   }
+}
+
+function runBalanceCheck(web3, fromAccount) {
+  setTimeout(async () => {
+    try {
+      await checkBalance(web3, fromAccount)
+    } catch (err) {
+      console.log(`Error while checking Executor balance!`, err)
+    }
+  }, 5000)
+}
+
+async function checkBalance(web3, fromAccount) {
+  const balance = await web3.eth.getBalance(fromAccount)
+  console.log(`Executor account: ${fromAccount} balance: ${balance}`)
 }
 
 module.exports = Executor;
