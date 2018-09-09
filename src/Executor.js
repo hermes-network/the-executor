@@ -84,7 +84,7 @@ class Executor {
     refundReceiver,
     signatures
   ) {
-    const account = await this.web3.eth.getAccounts()[0]
+    const account = (await this.web3.eth.getAccounts())[0]
 
     const safe = new this.web3.eth.Contract(GnosisSafeContract.abi, addr)
     let gas = await safe.methods.execTransaction(
@@ -98,7 +98,9 @@ class Executor {
       gasToken,
       refundReceiver,
       signatures
-    ).estimateGas({ from: account })
+    ).estimateGas({ from: account });
+    gas *= 1.2;
+    gas = parseInt(gas);
 
     const tx = await safe.methods.execTransaction(
       to,
@@ -112,6 +114,7 @@ class Executor {
       refundReceiver,
       signatures
     ).send({ from: account, gas })
+    console.log("tx!!!!!", tx);
   }
 }
 
