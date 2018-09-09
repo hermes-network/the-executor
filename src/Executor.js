@@ -55,6 +55,7 @@ class Executor {
             data,
             operation,
             safeTxGas,
+            dataGas,
             gasPrice,
             gasToken,
             refundReceiver,
@@ -62,7 +63,6 @@ class Executor {
             safeAddress,
             signedMessage
           } = msgJson;
-          const dataGas = 0;
 
           // call the contract
           await this.submit(
@@ -169,7 +169,7 @@ function runBalanceCheck(web3, fromAccount) {
 
 async function checkBalance(web3, fromAccount) {
   const balance = await getBalance(web3, fromAccount)
-  console.log(`Executor account: ${fromAccount} balance: ${Web3Utils.fromWei(balance, 'ether')}`)
+  console.log(`Executor account: ${fromAccount} balance: ${balance}`)
 }
 
 module.exports = Executor;
