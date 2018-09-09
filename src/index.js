@@ -1,22 +1,20 @@
-const Executor = require('./Executor')
+const Executor = require('./executor')
+const config = require('./config')
 
-const wsProviderUrl = 'ws://eth.oja.me:8547'
-const httpProviderUrl = 'http://eth.oja.me:3304'
-const appName = "hermes-network";
+async function main () {
+  let appName = 'hermes-network'
+  if (config.network === 'ropsten') {
+    appName = 'ropsten-hermes-network'
+  }
 
-async function main() {
   const executor = new Executor({
-    wsProviderUrl: wsProviderUrl,
-    httpProviderUrl: httpProviderUrl,
+    wsProviderUrl: config.wsProviderUrl,
+    httpProviderUrl: config.httpProviderUrl,
     appName: appName
-  });
+  })
 
   await executor.start()
 }
 
-// start it off
-main().then(() => {
-  console.log(``);
-}).catch((err) => {
-  console.log(`Error: `, err);
-});
+// Start daemon
+main().catch(console.error)
