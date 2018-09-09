@@ -2,18 +2,12 @@ const Executor = require('./executor')
 const config = require('./config')
 
 async function main () {
-  let appName = 'hermes-network'
-  if (config.network === 'ropsten') {
-    appName = 'ropsten-hermes-network'
-  }
-
   const executor = new Executor({
     wsProviderUrl: config.wsProviderUrl,
-    httpProviderUrl: config.httpProviderUrl,
-    appName: appName
+    httpProviderUrl: config.httpProviderUrl
   })
 
-  await executor.start()
+  await executor.run()
 }
 
 // Start daemon
