@@ -36,9 +36,19 @@ async function checkBalance (web3, fromAccount) {
   console.log(`Executor account: ${fromAccount} balance: ${balance}`)
 }
 
+function sleep (ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+function getRandomInt (max) {
+  return Math.floor(Math.random() * Math.floor(max))
+}
+
 module.exports = {
   getAccounts,
   getBalance,
   runBalanceCheck,
-  checkBalance
+  checkBalance,
+  sleep,
+  getRandomInt
 }

@@ -4,7 +4,7 @@ const Web3HDWalletProvider = require('web3-hdwallet-provider')
 const Shh = require('web3-shh')
 const Contract = require('truffle-contract')
 
-const { getAccounts, runBalanceCheck } = require('./utils')
+const { getAccounts, runBalanceCheck, sleep, getRandomInt } = require('./utils')
 const { mnemonic, sharedSecret, channel, network } = require('./config')
 const GnosisSafeContract = require('../build/contracts/GnosisSafe.json')
 
@@ -70,6 +70,7 @@ class Executor {
       gasPrice,
       gasToken,
       refundReceiver,
+      nonce,
       safeAddress,
       signedMessage
     } = msg
@@ -77,6 +78,19 @@ class Executor {
     const Safe = Contract({ abi: GnosisSafeContract.abi })
     Safe.setProvider(this.walletProvider)
     const safe = Safe.at(safeAddress)
+
+    // Proof of Random Sleep (PoRS)
+    const duration = getRandomInt(15000)
+    console.log(`Doing Proof of Random Sleep for ${duration} milliseconds!`)
+    sleep(duration)
+
+    // Check if nonce is valid, ie
+    // nobody else has beaten us to it.
+    let safeNonce = await safe.nonce()
+    if (nonce !== safeNonce.toString()) {
+      console.log('TX is stale, skipping')
+      return
+    }
 
     let gas = await safe.execTransaction.estimateGas(
       to,
