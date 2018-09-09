@@ -4,7 +4,7 @@ const Web3HDWalletProvider = require('web3-hdwallet-provider')
 const Shh = require('web3-shh')
 const Contract = require('truffle-contract')
 
-const { getAccounts, runBalanceCheck, sleep, getRandomInt } = require('./utils')
+const { getAccounts, getBalance, sleep, getRandomInt } = require('./utils')
 const { mnemonic, sharedSecret, channel, network } = require('./config')
 const GnosisSafeContract = require('../build/contracts/GnosisSafe.json')
 
@@ -26,9 +26,6 @@ class Executor {
 
     this.account = (await getAccounts(this.web3))[0]
     console.log(`Account: ${this.account}`)
-
-    // check the balance
-    runBalanceCheck(this.web3, this.account)
 
     let ch = network.concat(channel)
     const topics = [Web3Utils.asciiToHex(ch).slice(0, 10)]
@@ -92,6 +89,8 @@ class Executor {
       return
     }
 
+    let prevBalance = await getBalance(this.web3, this.account)
+
     let gas = await safe.execTransaction.estimateGas(
       to,
       value,
@@ -123,6 +122,8 @@ class Executor {
       { from: this.account, gas }
     )
 
+    let nextBalance = await getBalance(this.web3, this.account)
+    console.log(`Previous balance: ${prevBalance}, next balance: ${nextBalance}, net profit: ${nextBalance - prevBalance}`)
     console.log('TX:', tx)
   }
 }

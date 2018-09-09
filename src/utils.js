@@ -15,7 +15,6 @@ function getBalance (web3, fromAccount) {
       if (err) {
         return reject(err)
       }
-      console.log(`Balance: ${balance.toString()}`)
       return resolve(balance)
     })
   })
